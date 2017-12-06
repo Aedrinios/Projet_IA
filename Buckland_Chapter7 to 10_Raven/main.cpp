@@ -93,7 +93,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
          //don't forget to release the DC
          ReleaseDC(hwnd, hdc);  
-         
+              
          //create the game
          g_pRaven = new Raven_Game();
 
@@ -114,26 +114,6 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
       }
 
       break;
-	  
-	case WM_KEYDOWN:
-	{
-		switch (wParam)
-		{
-				 case 'O':
-			 g_pRaven->Move(4);
-			 break;
-		 case 'L':
-			 g_pRaven->Move(3);
-			 break;
-		 case 'K':
-			 g_pRaven->Move(2);
-			 break;
-		 case 'M':
-			 g_pRaven->Move(1);
-			 break;
-		}
-	}
-	break;
 
     case WM_KEYUP:
       {
@@ -174,40 +154,23 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
            g_pRaven->ChangeWeaponOfPossessedBot(type_rail_gun);
 
-           break;		
+           break;
 
          case 'X':
 
            g_pRaven->ExorciseAnyPossessedBot();
 
            break;
-		 
+
 
          case VK_UP:
 
-           g_pRaven->AddBots(1); break;
+           g_pRaven->AddBots(1, UserOptions->m_bAgentHasTeam); break;
 
          case VK_DOWN:
 
            g_pRaven->RemoveBot(); break;
            
-		 case 'J':
-			 g_pRaven->AddPlayer(); break;
-
-		 case 'B':
-			 g_pRaven->AddLearningBot(); break;
-
-		 case 'V':
-			 g_pRaven->m_pNet =  new CNeuralNet(NUM_VECTORS * 2,        //inputs
-				 g_pRaven->m_iNumValidPatterns,  //outputs
-				 NUM_HIDDEN_NEURONS,   //hidden
-				 LEARNING_RATE,
-				 true);
-			 g_pRaven->isPlayerInstantiate = false; 
-			 g_pRaven->data->CreateTrainingSetFromData();
-			 g_pRaven->m_pNet->Train(g_pRaven->data);
-			 break;
-
 
         }
       }
@@ -251,7 +214,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
       case IDM_GAME_ADDBOT:
 
-          g_pRaven->AddBots(1);
+          g_pRaven->AddBots(1, UserOptions->m_bAgentHasTeam);
           
           break;
 
@@ -266,8 +229,17 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
           g_pRaven->TogglePause();
 
           break;
+		
 
+	  case IDM_GAME_CREATE_TEAM:
 
+		  UserOptions->m_bAgentHasTeam = !UserOptions->m_bAgentHasTeam;
+
+		  CheckMenuItemAppropriately(hwnd, IDM_GAME_CREATE_TEAM, UserOptions->m_bAgentHasTeam);
+
+		  g_pRaven->CreateTeam(UserOptions->m_bAgentHasTeam);
+
+		  break;
 
       case IDM_NAVIGATION_SHOW_NAVGRAPH:
 

@@ -30,6 +30,8 @@ class Raven_WeaponSystem;
 class Raven_SensoryMemory;
 
 
+
+
 class Raven_Bot : public MovingEntity
 {
 private:
@@ -63,14 +65,14 @@ private:
 
   //this handles all the weapons. and has methods for aiming, selecting and
   //shooting them
- 
+  Raven_WeaponSystem*                m_pWeaponSys;
 
   //A regulator object limits the update frequency of a specific AI component
-  Regulator* m_pWeaponSelectionRegulator;
-  Regulator* m_pGoalArbitrationRegulator;
-  Regulator* m_pTargetSelectionRegulator;
-  Regulator* m_pTriggerTestRegulator;
-  Regulator* m_pVisionUpdateRegulator;
+  Regulator*                         m_pWeaponSelectionRegulator;
+  Regulator*                         m_pGoalArbitrationRegulator;
+  Regulator*                         m_pTargetSelectionRegulator;
+  Regulator*                         m_pTriggerTestRegulator;
+  Regulator*                         m_pVisionUpdateRegulator;
 
   //the bot's health. Every time the bot is shot this value is decreased. If
   //it reaches zero then the bot dies (and respawns)
@@ -103,8 +105,11 @@ private:
   //set to true when a human player takes over control of the bot
   bool                               m_bPossessed;
 
-  
+  //set to true if the bot is in a team
+  bool								 m_bInTeam;
 
+  //is target of the team
+  bool								 m_bIsTeamTarget;
 
   //a vertex buffer containing the bot's geometry
   std::vector<Vector2D>              m_vecBotVB;
@@ -125,9 +130,8 @@ private:
 
 
 public:
-	Raven_WeaponSystem*                m_pWeaponSys;
-	bool isLearningBot;
-  Raven_Bot(Raven_Game* world, Vector2D pos, bool possessmmed);
+  
+  Raven_Bot(Raven_Game* world, Vector2D pos);
   virtual ~Raven_Bot();
 
   //the usual suspects
@@ -158,10 +162,15 @@ public:
   bool          isDead()const{return m_Status == dead;}
   bool          isAlive()const{return m_Status == alive;}
   bool          isSpawning()const{return m_Status == spawning;}
+  bool          isInTeam()const { return m_bInTeam; }
+  bool			isTeamTarget()const { return m_bIsTeamTarget; }
   
   void          SetSpawning(){m_Status = spawning;}
   void          SetDead(){m_Status = dead;}
   void          SetAlive(){m_Status = alive;}
+
+  void			SetInTeam(bool teamExist);
+  void			SetIsTeamTarget(bool isTarget) { m_bIsTeamTarget = isTarget; }
 
   //returns a value indicating the time in seconds it will take the bot
   //to reach the given position at its current speed.

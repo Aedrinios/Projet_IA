@@ -25,13 +25,14 @@
 #include "game/EntityFunctionTemplates.h"
 #include "Raven_Bot.h"
 #include "navigation/pathmanager.h"
-#include "CNeuralNet.h"
-#include "CData.h"
+#include "triggers\Trigger_TeamWeapon.h"
+
 
 class BaseGameEntity;
 class Raven_Projectile;
 class Raven_Map;
 class GraveMarkers;
+
 
 
 class Raven_Game
@@ -40,29 +41,13 @@ private:
 
   //the current game map
   Raven_Map*                       m_pMap;
-
  
   //a list of all the bots that are inhabiting the map
   std::list<Raven_Bot*>            m_Bots;
 
   //the user may select a bot to control manually. This is a pointer to that
   //bot
-  
-
-  //if the network has found a pattern this is the match
-  int     m_iMatch;
-
-  //the smoothed path transformed into vectors
-  vector<double> m_vecVectors;
-
-
-  //the probability the networks guess is correct
-  double  m_dMatchProbability;
-
-  
-
-  //the best match based on the probability above
-  int     m_iBestMatch;
+  Raven_Bot*                       m_pSelectedBot;
   
   //this list contains any active projectiles (slugs, rockets,
   //shotgun pellets, etc)
@@ -81,6 +66,11 @@ private:
   //when a bot is killed a "grave" is displayed for a few seconds. This
   //class manages the graves
   GraveMarkers*                    m_pGraveMarkers;
+
+  Trigger_TeamWeapon*			   m_pTriggerTeamWeapon;
+
+  //current target of the team
+  Raven_Bot*					   m_pTeamTarget;
 
   //this iterates through each trigger, testing each one against each bot
   void  UpdateTriggers();
@@ -102,12 +92,6 @@ public:
   Raven_Game();
   ~Raven_Game();
 
-  Raven_Bot* m_pSelectedBot;
-  CData* data;
-  CNeuralNet* m_pNet;
-  int m_iNumValidPatterns;
-
-  //static bool isLoaded;
   //the usual suspects
   void Render();
   void Update();
@@ -115,17 +99,12 @@ public:
   //loads an environment from a file
   bool LoadMap(const std::string& FileName); 
 
-  bool isPlayerInstantiate = false;
-
-  void AddBots(unsigned int NumBotsToAdd);
-  void AddPlayer();
-  void AddLearningBot();
-  void Learning();
-
+  void AddBots(unsigned int NumBotsToAdd, bool teamExist);
   void AddRocket(Raven_Bot* shooter, Vector2D target);
   void AddRailGunSlug(Raven_Bot* shooter, Vector2D target);
   void AddShotGunPellet(Raven_Bot* shooter, Vector2D target);
   void AddBolt(Raven_Bot* shooter, Vector2D target);
+  void CreateTeam(bool teamExist);
 
   //removes the last bot to be added
   void RemoveBot();
@@ -154,8 +133,6 @@ public:
   //door of the specified ID
   Vector2D GetPosOfClosestSwitch(Vector2D botPos, unsigned int doorID)const;
 
-  Vector2D LastClickedPosition;
-
   //given a position on the map this method returns the bot found with its
   //bounding radius of that position.If there is no bot at the position the
   //method returns NULL
@@ -183,8 +160,6 @@ public:
   Raven_Bot*  PossessedBot()const{return m_pSelectedBot;}
   void        ChangeWeaponOfPossessedBot(unsigned int weapon)const;
 
-  void Move(int direction);
-
   
   const Raven_Map* const                   GetMap()const{return m_pMap;}
   Raven_Map* const                         GetMap(){return m_pMap;}
@@ -195,9 +170,9 @@ public:
   
   void  TagRaven_BotsWithinViewRange(BaseGameEntity* pRaven_Bot, double range)
               {TagNeighbors(pRaven_Bot, m_Bots, range);}  
-	bool    TestForMatch();
-};
 
+  void  ResetTeamTarget() { m_pTeamTarget = NULL; }
+};
 
 
 

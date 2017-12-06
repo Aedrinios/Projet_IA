@@ -11,6 +11,7 @@
 #include "time/Regulator.h"
 #include "Raven_WeaponSystem.h"
 #include "Raven_SensoryMemory.h"
+#include "triggers\Trigger_TeamWeapon.h"
 
 #include "Messaging/Telegram.h"
 #include "Raven_Messages.h"
@@ -22,9 +23,8 @@
 
 #include "Debug/DebugConsole.h"
 
-
 //-------------------------- ctor ---------------------------------------------
-Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos, bool possessed):
+Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
 
   MovingEntity(pos,
                script->GetDouble("Bot_Scale"),
@@ -44,15 +44,16 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos, bool possessed):
                  m_pBrain(NULL),
                  m_iNumUpdatesHitPersistant((int)(FrameRate * script->GetDouble("HitFlashTime"))),
                  m_bHit(false),
+				 m_bInTeam(false),
+				 m_bIsTeamTarget(false),
                  m_iScore(0),
                  m_Status(spawning),
-                 m_bPossessed(possessed),
+                 m_bPossessed(false),
                  m_dFieldOfView(DegsToRads(script->GetDouble("Bot_FOV")))
            
 {
-
-
   SetEntityType(type_bot);
+
   SetUpVertexBuffer();
   
   //a bot starts off facing in the direction it is heading
@@ -83,13 +84,6 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos, bool possessed):
                                         script->GetDouble("Bot_AimPersistance"));
 
   m_pSensoryMem = new Raven_SensoryMemory(this, script->GetDouble("Bot_MemorySpan"));
- 
-  if (possessed == true) 
-	  {
-		  this->TakePossession();
-		  //clear any current goals
-		  this->GetBrain()->RemoveAllSubgoals();
-	  }
 }
 
 //-------------------------------- dtor ---------------------------------------
@@ -109,6 +103,10 @@ Raven_Bot::~Raven_Bot()
   delete m_pVisionUpdateRegulator;
   delete m_pWeaponSys;
   delete m_pSensoryMem;
+
+  if (m_bIsTeamTarget) {
+	  m_pWorld->ResetTeamTarget();
+  }
 }
 
 //------------------------------- Spawn ---------------------------------------
@@ -165,25 +163,10 @@ void Raven_Bot::Update()
     {       
       m_pWeaponSys->SelectWeapon();       
     }
-	if (isLearningBot) {
-		//this method aims the bot's current weapon at the current target
-		//and takes a shot if a shot is possible
-		m_pWeaponSys->TakeAimAndShoot();
-	}
-	else
-	{
-		/*m_vecVectors.push_back((*curBot)->Pos().x);
-		m_vecVectors.push_back((*curBot)->Pos().y);
-		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().x);
-		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().y);
-		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->GetType());
-		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->NumRoundsRemaining());
 
-		if (TestForMatch()) {
-			(*curBot)->m_pWeaponSys->TakeAimAndShoot();
-		}*/
-	}
-	
+    //this method aims the bot's current weapon at the current target
+    //and takes a shot if a shot is possible
+    m_pWeaponSys->TakeAimAndShoot();
   }
 }
 
@@ -541,6 +524,21 @@ void Raven_Bot::Render()
     }
   }
 
+  //render a blue circle if the bot is in a team
+  if (m_bInTeam)
+  {
+	  gdi->ThickBluePen();
+	  gdi->HollowBrush();
+	  gdi->Circle(m_vPosition, BRadius() + 1);
+  }
+
+  if (m_bIsTeamTarget)
+  {
+	  gdi->ThickRedPen();
+	  gdi->HollowBrush();
+	  gdi->Circle(m_vPosition, BRadius() + 1);
+  }
+
   gdi->TransparentText();
   gdi->TextColor(0,255,0);
 
@@ -600,4 +598,17 @@ void Raven_Bot::IncreaseHealth(unsigned int val)
 {
   m_iHealth+=val; 
   Clamp(m_iHealth, 0, m_iMaxHealth);
+}
+
+
+void Raven_Bot::SetInTeam(bool teamExist)
+{
+	if (teamExist) {
+		m_bInTeam = true;
+		debug_con << this - ID() << " is in a team " << "";
+	}
+	else {
+		m_bInTeam = false;
+		debug_con << this->ID() << " is out of the team " << "";
+	}
 }
