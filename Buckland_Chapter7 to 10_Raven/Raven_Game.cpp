@@ -16,7 +16,7 @@
 #include "messaging/MessageDispatcher.h"
 #include "Raven_Messages.h"
 #include "GraveMarkers.h"
-
+#include "armory\Raven_Weapon.h"
 #include "armory/Raven_Projectile.h"
 #include "armory/Projectile_Rocket.h"
 #include "armory/Projectile_Pellet.h"
@@ -25,6 +25,7 @@
 
 #include "goals/Goal_Think.h"
 #include "goals/Raven_Goal_Types.h"
+
 
 
 
@@ -43,6 +44,15 @@ Raven_Game::Raven_Game():m_pSelectedBot(NULL),
 {
   //load in the default map
   LoadMap(script->GetString("StartMap"));
+
+  
+
+  data = new CData(0,3);
+  m_iNumValidPatterns = 0;
+
+
+  //isLoaded = true;
+
 }
 
 
@@ -106,6 +116,10 @@ void Raven_Game::Clear()
 //-----------------------------------------------------------------------------
 void Raven_Game::Update()
 { 
+	/*if (isPlayerInstantiate) {
+		Learning();
+	}*/
+	
   //don't update if the user has paused the game
   if (m_bPaused) return;
 
@@ -147,6 +161,7 @@ void Raven_Game::Update()
   bool bSpawnPossible = true;
   
   std::list<Raven_Bot*>::iterator curBot = m_Bots.begin();
+
   for (curBot; curBot != m_Bots.end(); ++curBot)
   {
     //if this bot's status is 'respawning' attempt to resurrect it from
@@ -172,6 +187,27 @@ void Raven_Game::Update()
     {
       (*curBot)->Update();
     }  
+	
+	if ((*curBot)->isLearningBot) {
+		//this method aims the bot's current weapon at the current target
+		//and takes a shot if a shot is possible
+		(*curBot)->m_pWeaponSys->TakeAimAndShoot();
+	}
+	else
+	{
+		m_vecVectors.push_back((*curBot)->Pos().x);
+		m_vecVectors.push_back((*curBot)->Pos().y);
+		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().x);
+		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().y);
+		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->GetType());
+		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->NumRoundsRemaining());
+
+		if (TestForMatch()) {
+			(*curBot)->m_pWeaponSys->TakeAimAndShoot();
+		}
+	}
+	
+	
   } 
 
   //update the triggers
@@ -193,6 +229,8 @@ void Raven_Game::Update()
 
     m_bRemoveABot = false;
   }
+
+ 
 }
 
 
@@ -246,12 +284,13 @@ bool Raven_Game::AttemptToAddBot(Raven_Bot* pBot)
 //-----------------------------------------------------------------------------
 void Raven_Game::AddBots(unsigned int NumBotsToAdd)
 { 
+  
   while (NumBotsToAdd--)
   {
     //create a bot. (its position is irrelevant at this point because it will
     //not be rendered until it is spawned)
-    Raven_Bot* rb = new Raven_Bot(this, Vector2D());
-
+    Raven_Bot* rb = new Raven_Bot(this, Vector2D(),false);
+	rb->isLearningBot = true;
     //switch the default steering behaviors on
     rb->GetSteering()->WallAvoidanceOn();
     rb->GetSteering()->SeparationOn();
@@ -266,6 +305,68 @@ void Raven_Game::AddBots(unsigned int NumBotsToAdd)
   debug_con << "Adding bot with ID " << ttos(rb->ID()) << "";
 #endif
   }
+}
+
+
+void Raven_Game::AddLearningBot() {
+	//create a bot. (its position is irrelevant at this point because it will
+	//not be rendered until it is spawned)
+	Raven_Bot* rb = new Raven_Bot(this, Vector2D(), false);
+
+	rb->isLearningBot = false;
+	//switch the default steering behaviors on
+	rb->GetSteering()->WallAvoidanceOn();
+	rb->GetSteering()->SeparationOn();
+
+	m_Bots.push_back(rb);
+
+	//register the bot with the entity manager
+	EntityMgr->RegisterEntity(rb);
+
+
+#ifdef LOG_CREATIONAL_STUFF
+	debug_con << "Adding Bot Learning with ID " << ttos(rb->ID()) << "";
+#endif
+}
+
+void Raven_Game::AddPlayer()
+{
+
+		//create a bot. (its position is irrelevant at this point because it will
+		//not be rendered until it is spawned)
+		Raven_Bot* rb = new Raven_Bot(this, Vector2D(), true);
+		isPlayerInstantiate = true;
+		//switch the default steering behaviors on
+		rb->GetSteering()->WallAvoidanceOn();
+		rb->GetSteering()->SeparationOn();
+
+		m_Bots.push_back(rb);
+
+		m_pSelectedBot = rb;
+		//register the bot with the entity manager
+		EntityMgr->RegisterEntity(rb);
+
+
+#ifdef LOG_CREATIONAL_STUFF
+		debug_con << "Adding player with ID " << ttos(rb->ID()) << "";
+#endif
+
+}
+
+
+void Raven_Game::Learning() {
+
+	vector <double> DataBuffer;
+	DataBuffer.push_back(m_pSelectedBot->Pos().x);
+	DataBuffer.push_back(m_pSelectedBot->Pos().y);
+	DataBuffer.push_back(LastClickedPosition.x);
+	DataBuffer.push_back(LastClickedPosition.y);
+	DataBuffer.push_back(m_pSelectedBot->GetWeaponSys()->GetCurrentWeapon()->GetType());
+	DataBuffer.push_back(m_pSelectedBot->GetWeaponSys()->GetCurrentWeapon()->NumRoundsRemaining());
+	data->AddData(DataBuffer);
+
+	++m_iNumValidPatterns;
+
 }
 
 //---------------------------- NotifyAllBotsOfRemoval -------------------------
@@ -378,7 +479,6 @@ bool Raven_Game::LoadMap(const std::string& filename)
 {  
   //clear any current bots and projectiles
   Clear();
-  
   //out with the old
   delete m_pMap;
   delete m_pGraveMarkers;
@@ -438,7 +538,6 @@ void Raven_Game::ClickRightMouseButton(POINTS p)
   { 
     if (m_pSelectedBot) m_pSelectedBot->Exorcise();
     m_pSelectedBot = pBot;
-
     return;
   }
 
@@ -479,6 +578,9 @@ void Raven_Game::ClickLeftMouseButton(POINTS p)
   if (m_pSelectedBot && m_pSelectedBot->isPossessed())
   {
     m_pSelectedBot->FireWeapon(POINTStoVector(p));
+	LastClickedPosition = POINTStoVector(p);
+	Learning();
+	
   }
 }
 
@@ -493,6 +595,30 @@ void Raven_Game::GetPlayerInput()const
   {
       m_pSelectedBot->RotateFacingTowardPosition(GetClientCursorPosition());
    }
+}
+
+void Raven_Game::Move(int direction) {
+	if (m_pSelectedBot->isPossessed()) {
+
+		Vector2D vitesse;
+		switch (direction)
+		{
+		case 1:
+			vitesse.x += 10;					
+			break;
+		case 2:
+			vitesse.x -= 10; 
+			break;
+		case 3:
+			vitesse.y += 10;
+			break;
+		case 4:
+			vitesse.y -= 10;
+			break;
+		}
+		//vitesse.Normalize();
+		m_pSelectedBot->SetVelocity(vitesse);
+	}
 }
 
 
@@ -794,3 +920,44 @@ void Raven_Game::Render()
     }
   }
 }
+
+bool Raven_Game::TestForMatch()
+{
+	//input the smoothed mouse vectors into the net and see if we get a match
+	vector<double> outputs = m_pNet->Update(m_vecVectors);
+
+	if (outputs.size() == 0)
+	{
+		MessageBox(NULL, "Error in with ANN output", "Error!", MB_OK);
+
+		return false;
+	}
+
+	//run through the outputs and see which is highest
+	m_dMatchProbability = 0;
+	m_iBestMatch = 0;
+	m_iMatch = -1;
+
+	for (int i = 0; i<outputs.size(); ++i)
+	{
+		if (outputs[i] > m_dMatchProbability)
+		{
+			//make a note of the most likely candidate
+			m_dMatchProbability = outputs[i];
+
+			m_iBestMatch = i;
+
+
+			//if the candidates output exceeds the threshold we 
+			//have a match! ...so make a note of it.
+			if (m_dMatchProbability > MATCH_TOLERANCE)
+			{
+				m_iMatch = m_iBestMatch;
+
+			}
+		}
+	}
+
+	return true;
+}
+

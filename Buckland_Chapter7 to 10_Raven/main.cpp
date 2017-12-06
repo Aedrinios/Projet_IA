@@ -93,7 +93,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
          //don't forget to release the DC
          ReleaseDC(hwnd, hdc);  
-              
+         
          //create the game
          g_pRaven = new Raven_Game();
 
@@ -114,6 +114,26 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
       }
 
       break;
+	  
+	case WM_KEYDOWN:
+	{
+		switch (wParam)
+		{
+				 case 'O':
+			 g_pRaven->Move(4);
+			 break;
+		 case 'L':
+			 g_pRaven->Move(3);
+			 break;
+		 case 'K':
+			 g_pRaven->Move(2);
+			 break;
+		 case 'M':
+			 g_pRaven->Move(1);
+			 break;
+		}
+	}
+	break;
 
     case WM_KEYUP:
       {
@@ -154,14 +174,14 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
            g_pRaven->ChangeWeaponOfPossessedBot(type_rail_gun);
 
-           break;
+           break;		
 
          case 'X':
 
            g_pRaven->ExorciseAnyPossessedBot();
 
            break;
-
+		 
 
          case VK_UP:
 
@@ -171,6 +191,23 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
            g_pRaven->RemoveBot(); break;
            
+		 case 'J':
+			 g_pRaven->AddPlayer(); break;
+
+		 case 'B':
+			 g_pRaven->AddLearningBot(); break;
+
+		 case 'V':
+			 g_pRaven->m_pNet =  new CNeuralNet(NUM_VECTORS * 2,        //inputs
+				 g_pRaven->m_iNumValidPatterns,  //outputs
+				 NUM_HIDDEN_NEURONS,   //hidden
+				 LEARNING_RATE,
+				 true);
+			 g_pRaven->isPlayerInstantiate = false; 
+			 g_pRaven->data->CreateTrainingSetFromData();
+			 g_pRaven->m_pNet->Train(g_pRaven->data);
+			 break;
+
 
         }
       }

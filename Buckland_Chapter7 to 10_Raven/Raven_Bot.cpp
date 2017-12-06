@@ -22,8 +22,9 @@
 
 #include "Debug/DebugConsole.h"
 
+
 //-------------------------- ctor ---------------------------------------------
-Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
+Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos, bool possessed):
 
   MovingEntity(pos,
                script->GetDouble("Bot_Scale"),
@@ -45,12 +46,13 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
                  m_bHit(false),
                  m_iScore(0),
                  m_Status(spawning),
-                 m_bPossessed(false),
+                 m_bPossessed(possessed),
                  m_dFieldOfView(DegsToRads(script->GetDouble("Bot_FOV")))
            
 {
-  SetEntityType(type_bot);
 
+
+  SetEntityType(type_bot);
   SetUpVertexBuffer();
   
   //a bot starts off facing in the direction it is heading
@@ -81,6 +83,13 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
                                         script->GetDouble("Bot_AimPersistance"));
 
   m_pSensoryMem = new Raven_SensoryMemory(this, script->GetDouble("Bot_MemorySpan"));
+ 
+  if (possessed == true) 
+	  {
+		  this->TakePossession();
+		  //clear any current goals
+		  this->GetBrain()->RemoveAllSubgoals();
+	  }
 }
 
 //-------------------------------- dtor ---------------------------------------
@@ -156,10 +165,25 @@ void Raven_Bot::Update()
     {       
       m_pWeaponSys->SelectWeapon();       
     }
+	if (isLearningBot) {
+		//this method aims the bot's current weapon at the current target
+		//and takes a shot if a shot is possible
+		m_pWeaponSys->TakeAimAndShoot();
+	}
+	else
+	{
+		/*m_vecVectors.push_back((*curBot)->Pos().x);
+		m_vecVectors.push_back((*curBot)->Pos().y);
+		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().x);
+		m_vecVectors.push_back((*curBot)->GetTargetBot()->Pos().y);
+		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->GetType());
+		m_vecVectors.push_back((*curBot)->GetWeaponSys()->GetCurrentWeapon()->NumRoundsRemaining());
 
-    //this method aims the bot's current weapon at the current target
-    //and takes a shot if a shot is possible
-    m_pWeaponSys->TakeAimAndShoot();
+		if (TestForMatch()) {
+			(*curBot)->m_pWeaponSys->TakeAimAndShoot();
+		}*/
+	}
+	
   }
 }
 
