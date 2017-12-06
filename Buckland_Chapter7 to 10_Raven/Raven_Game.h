@@ -25,13 +25,13 @@
 #include "game/EntityFunctionTemplates.h"
 #include "Raven_Bot.h"
 #include "navigation/pathmanager.h"
-
+#include "CNeuralNet.h"
+#include "CData.h"
 
 class BaseGameEntity;
 class Raven_Projectile;
 class Raven_Map;
 class GraveMarkers;
-
 
 
 class Raven_Game
@@ -40,13 +40,29 @@ private:
 
   //the current game map
   Raven_Map*                       m_pMap;
+
  
   //a list of all the bots that are inhabiting the map
   std::list<Raven_Bot*>            m_Bots;
 
   //the user may select a bot to control manually. This is a pointer to that
   //bot
-  Raven_Bot*                       m_pSelectedBot;
+  
+
+  //if the network has found a pattern this is the match
+  int     m_iMatch;
+
+  //the smoothed path transformed into vectors
+  vector<double> m_vecVectors;
+
+
+  //the probability the networks guess is correct
+  double  m_dMatchProbability;
+
+  
+
+  //the best match based on the probability above
+  int     m_iBestMatch;
   
   //this list contains any active projectiles (slugs, rockets,
   //shotgun pellets, etc)
@@ -86,6 +102,12 @@ public:
   Raven_Game();
   ~Raven_Game();
 
+  Raven_Bot* m_pSelectedBot;
+  CData* data;
+  CNeuralNet* m_pNet;
+  int m_iNumValidPatterns;
+
+  //static bool isLoaded;
   //the usual suspects
   void Render();
   void Update();
@@ -93,7 +115,13 @@ public:
   //loads an environment from a file
   bool LoadMap(const std::string& FileName); 
 
+  bool isPlayerInstantiate = false;
+
   void AddBots(unsigned int NumBotsToAdd);
+  void AddPlayer();
+  void AddLearningBot();
+  void Learning();
+
   void AddRocket(Raven_Bot* shooter, Vector2D target);
   void AddRailGunSlug(Raven_Bot* shooter, Vector2D target);
   void AddShotGunPellet(Raven_Bot* shooter, Vector2D target);
@@ -126,6 +154,8 @@ public:
   //door of the specified ID
   Vector2D GetPosOfClosestSwitch(Vector2D botPos, unsigned int doorID)const;
 
+  Vector2D LastClickedPosition;
+
   //given a position on the map this method returns the bot found with its
   //bounding radius of that position.If there is no bot at the position the
   //method returns NULL
@@ -153,6 +183,8 @@ public:
   Raven_Bot*  PossessedBot()const{return m_pSelectedBot;}
   void        ChangeWeaponOfPossessedBot(unsigned int weapon)const;
 
+  void Move(int direction);
+
   
   const Raven_Map* const                   GetMap()const{return m_pMap;}
   Raven_Map* const                         GetMap(){return m_pMap;}
@@ -163,7 +195,9 @@ public:
   
   void  TagRaven_BotsWithinViewRange(BaseGameEntity* pRaven_Bot, double range)
               {TagNeighbors(pRaven_Bot, m_Bots, range);}  
+	bool    TestForMatch();
 };
+
 
 
 

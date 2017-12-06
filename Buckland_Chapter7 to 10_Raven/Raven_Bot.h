@@ -30,8 +30,6 @@ class Raven_WeaponSystem;
 class Raven_SensoryMemory;
 
 
-
-
 class Raven_Bot : public MovingEntity
 {
 private:
@@ -65,14 +63,14 @@ private:
 
   //this handles all the weapons. and has methods for aiming, selecting and
   //shooting them
-  Raven_WeaponSystem*                m_pWeaponSys;
+ 
 
   //A regulator object limits the update frequency of a specific AI component
-  Regulator*                         m_pWeaponSelectionRegulator;
-  Regulator*                         m_pGoalArbitrationRegulator;
-  Regulator*                         m_pTargetSelectionRegulator;
-  Regulator*                         m_pTriggerTestRegulator;
-  Regulator*                         m_pVisionUpdateRegulator;
+  Regulator* m_pWeaponSelectionRegulator;
+  Regulator* m_pGoalArbitrationRegulator;
+  Regulator* m_pTargetSelectionRegulator;
+  Regulator* m_pTriggerTestRegulator;
+  Regulator* m_pVisionUpdateRegulator;
 
   //the bot's health. Every time the bot is shot this value is decreased. If
   //it reaches zero then the bot dies (and respawns)
@@ -105,6 +103,9 @@ private:
   //set to true when a human player takes over control of the bot
   bool                               m_bPossessed;
 
+  
+
+
   //a vertex buffer containing the bot's geometry
   std::vector<Vector2D>              m_vecBotVB;
   //the buffer for the transformed vertices
@@ -124,8 +125,9 @@ private:
 
 
 public:
-  
-  Raven_Bot(Raven_Game* world, Vector2D pos);
+	Raven_WeaponSystem*                m_pWeaponSys;
+	bool isLearningBot;
+  Raven_Bot(Raven_Game* world, Vector2D pos, bool possessmmed);
   virtual ~Raven_Bot();
 
   //the usual suspects
