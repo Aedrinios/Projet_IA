@@ -35,7 +35,6 @@ public:
                                         m_bClockwise(RandBool())
   {}
 
-
   void Activate();
 
   int  Process();

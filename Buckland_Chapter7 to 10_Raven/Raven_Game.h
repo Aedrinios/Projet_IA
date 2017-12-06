@@ -25,6 +25,7 @@
 #include "game/EntityFunctionTemplates.h"
 #include "Raven_Bot.h"
 #include "navigation/pathmanager.h"
+#include "triggers\Trigger_TeamWeapon.h"
 
 
 class BaseGameEntity;
@@ -66,6 +67,11 @@ private:
   //class manages the graves
   GraveMarkers*                    m_pGraveMarkers;
 
+  Trigger_TeamWeapon*			   m_pTriggerTeamWeapon;
+
+  //current target of the team
+  Raven_Bot*					   m_pTeamTarget;
+
   //this iterates through each trigger, testing each one against each bot
   void  UpdateTriggers();
 
@@ -93,11 +99,12 @@ public:
   //loads an environment from a file
   bool LoadMap(const std::string& FileName); 
 
-  void AddBots(unsigned int NumBotsToAdd);
+  void AddBots(unsigned int NumBotsToAdd, bool teamExist);
   void AddRocket(Raven_Bot* shooter, Vector2D target);
   void AddRailGunSlug(Raven_Bot* shooter, Vector2D target);
   void AddShotGunPellet(Raven_Bot* shooter, Vector2D target);
   void AddBolt(Raven_Bot* shooter, Vector2D target);
+  void CreateTeam(bool teamExist);
 
   //removes the last bot to be added
   void RemoveBot();
@@ -163,6 +170,8 @@ public:
   
   void  TagRaven_BotsWithinViewRange(BaseGameEntity* pRaven_Bot, double range)
               {TagNeighbors(pRaven_Bot, m_Bots, range);}  
+
+  void  ResetTeamTarget() { m_pTeamTarget = NULL; }
 };
 
 

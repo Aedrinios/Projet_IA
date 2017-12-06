@@ -11,6 +11,7 @@
 #include "time/Regulator.h"
 #include "Raven_WeaponSystem.h"
 #include "Raven_SensoryMemory.h"
+#include "triggers\Trigger_TeamWeapon.h"
 
 #include "Messaging/Telegram.h"
 #include "Raven_Messages.h"
@@ -43,6 +44,8 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
                  m_pBrain(NULL),
                  m_iNumUpdatesHitPersistant((int)(FrameRate * script->GetDouble("HitFlashTime"))),
                  m_bHit(false),
+				 m_bInTeam(false),
+				 m_bIsTeamTarget(false),
                  m_iScore(0),
                  m_Status(spawning),
                  m_bPossessed(false),
@@ -100,6 +103,10 @@ Raven_Bot::~Raven_Bot()
   delete m_pVisionUpdateRegulator;
   delete m_pWeaponSys;
   delete m_pSensoryMem;
+
+  if (m_bIsTeamTarget) {
+	  m_pWorld->ResetTeamTarget();
+  }
 }
 
 //------------------------------- Spawn ---------------------------------------
@@ -517,6 +524,21 @@ void Raven_Bot::Render()
     }
   }
 
+  //render a blue circle if the bot is in a team
+  if (m_bInTeam)
+  {
+	  gdi->ThickBluePen();
+	  gdi->HollowBrush();
+	  gdi->Circle(m_vPosition, BRadius() + 1);
+  }
+
+  if (m_bIsTeamTarget)
+  {
+	  gdi->ThickRedPen();
+	  gdi->HollowBrush();
+	  gdi->Circle(m_vPosition, BRadius() + 1);
+  }
+
   gdi->TransparentText();
   gdi->TextColor(0,255,0);
 
@@ -576,4 +598,17 @@ void Raven_Bot::IncreaseHealth(unsigned int val)
 {
   m_iHealth+=val; 
   Clamp(m_iHealth, 0, m_iMaxHealth);
+}
+
+
+void Raven_Bot::SetInTeam(bool teamExist)
+{
+	if (teamExist) {
+		m_bInTeam = true;
+		debug_con << this - ID() << " is in a team " << "";
+	}
+	else {
+		m_bInTeam = false;
+		debug_con << this->ID() << " is out of the team " << "";
+	}
 }

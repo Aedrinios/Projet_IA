@@ -1,6 +1,7 @@
-NavGraph for maps/Raven_DM1.map loaded okay
-Average edge length is 23.7036
-Neighborhood range set to 24.7036
+Trigger Team Weapon Created 
+NavGraph for maps/Raven_DM1ForTeam.map loaded okay
+Average edge length is 23.6344
+Neighborhood range set to 24.6344
 Partitioning navgraph nodes...
 Loading map...
 Creating a Wall
@@ -72,27 +73,73 @@ Creating a Railgun
 Creating a shotgun
 Creating a shotgun
 Creating a rocket_launcher
-maps/Raven_DM1.map loaded okay
-BOT 403 IS STUCK!!
-BOT 402 IS STUCK!!
-BOT 401 IS STUCK!!
-BOT 403 IS STUCK!!
-BOT 403 IS STUCK!!
-BOT 1062 IS STUCK!!
-BOT 401 IS STUCK!!
-BOT 402 IS STUCK!!
-BOT 1091 IS STUCK!!
-BOT 402 IS STUCK!!
-BOT 1062 IS STUCK!!
-BOT 1166 IS STUCK!!
-BOT 1062 IS STUCK!!
-BOT 1091 IS STUCK!!
-BOT 1091 IS STUCK!!
-BOT 1166 IS STUCK!!
-BOT 402 IS STUCK!!
-deleting raven bot (id = 401)
-deleting raven bot (id = 402)
-deleting raven bot (id = 403)
-deleting raven bot (id = 1062)
-deleting raven bot (id = 1091)
-deleting raven bot (id = 1166)
+Creating a sliding_door
+Creating a door_trigger
+Creating a door_trigger
+Creating a sliding_door
+Creating a door_trigger
+Creating a door_trigger
+maps/Raven_DM1ForTeam.map loaded okay
+deleting raven bot (id = 750)
+02A7F060 is in a team 
+02A7F200 is in a team 
+Trigger Team Weapon Added 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+Render Trigger Team Weapon Rocket Launcher 
+BOT 837 IS STUCK!!
+Trigger Team Weapon Added 
+BOT 790 IS STUCK!!
+BOT 888 IS STUCK!!
+Trigger Team Weapon Added 
+Render Trigger Team Weapon Shotgun 
+Render Trigger Team Weapon Shotgun 
+Render Trigger Team Weapon Shotgun 
+Render Trigger Team Weapon Shotgun 
+Render Trigger Team Weapon Shotgun 
+Render Trigger Team Weapon Shotgun 
+BOT 767 IS STUCK!!
+BOT 844 IS STUCK!!
+Trigger Team Weapon Added 
+BOT 888 IS STUCK!!
+Trigger Team Weapon Added 
+Trigger Team Weapon Added 
+Trigger Team Weapon Added 
+Trigger Team Weapon Added 
+BOT 748 IS STUCK!!
+Trigger Team Weapon Added 
+BOT 823 IS STUCK!!
+BOT 748 IS STUCK!!
+BOT 772 IS STUCK!!
+deleting raven bot (id = 748)
+deleting raven bot (id = 749)
+deleting raven bot (id = 767)
+deleting raven bot (id = 768)
+deleting raven bot (id = 769)
+deleting raven bot (id = 770)
+deleting raven bot (id = 771)
+deleting raven bot (id = 772)
+deleting raven bot (id = 773)
+deleting raven bot (id = 776)
+deleting raven bot (id = 777)
+deleting raven bot (id = 778)
+deleting raven bot (id = 781)
+deleting raven bot (id = 790)
+deleting raven bot (id = 791)
+deleting raven bot (id = 796)
+deleting raven bot (id = 801)
+deleting raven bot (id = 814)
+deleting raven bot (id = 823)
+deleting raven bot (id = 830)
+deleting raven bot (id = 837)
+deleting raven bot (id = 844)
+deleting raven bot (id = 855)
+deleting raven bot (id = 868)
+deleting raven bot (id = 873)
+deleting raven bot (id = 888)
+deleting raven bot (id = 913)

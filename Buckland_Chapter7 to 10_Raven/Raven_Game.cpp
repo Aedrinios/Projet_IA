@@ -39,7 +39,9 @@ Raven_Game::Raven_Game():m_pSelectedBot(NULL),
                          m_bRemoveABot(false),
                          m_pMap(NULL),
                          m_pPathManager(NULL),
-                         m_pGraveMarkers(NULL)
+                         m_pGraveMarkers(NULL),
+						 m_pTeamTarget(NULL),
+						 m_pTriggerTeamWeapon(NULL)
 {
   //load in the default map
   LoadMap(script->GetString("StartMap"));
@@ -55,6 +57,7 @@ Raven_Game::~Raven_Game()
   delete m_pMap;
   
   delete m_pGraveMarkers;
+  delete m_pTriggerTeamWeapon;
 }
 
 
@@ -162,6 +165,10 @@ void Raven_Game::Update()
     {
       //create a grave
       m_pGraveMarkers->AddGrave((*curBot)->Pos());
+	  if ((*curBot)->isInTeam()) {
+		m_pTriggerTeamWeapon->AddTeamWeapon((*curBot)->Pos(), (*curBot)->GetWeaponSys()->GetCurrentWeapon());
+	  }
+	  
 
       //change its status to spawning
       (*curBot)->SetSpawning();
@@ -244,7 +251,7 @@ bool Raven_Game::AttemptToAddBot(Raven_Bot* pBot)
 //
 //  Adds a bot and switches on the default steering behavior
 //-----------------------------------------------------------------------------
-void Raven_Game::AddBots(unsigned int NumBotsToAdd)
+void Raven_Game::AddBots(unsigned int NumBotsToAdd, bool teamExist)
 { 
   while (NumBotsToAdd--)
   {
@@ -261,12 +268,18 @@ void Raven_Game::AddBots(unsigned int NumBotsToAdd)
     //register the bot with the entity manager
     EntityMgr->RegisterEntity(rb);
 
+	if (teamExist && m_pTeamTarget == NULL) {
+		m_pTeamTarget = rb;
+		rb->SetIsTeamTarget(true);
+	}
+
     
 #ifdef LOG_CREATIONAL_STUFF
   debug_con << "Adding bot with ID " << ttos(rb->ID()) << "";
 #endif
   }
 }
+
 
 //---------------------------- NotifyAllBotsOfRemoval -------------------------
 //
@@ -294,6 +307,18 @@ void Raven_Game::NotifyAllBotsOfRemoval(Raven_Bot* pRemovedBot)const
 void Raven_Game::RemoveBot()
 {
   m_bRemoveABot = true;
+}
+
+
+//--------------------------- CreateTeam ---------------------------------------
+//-----------------------------------------------------------------------------
+void Raven_Game::CreateTeam(bool teamExist) {
+	std::list<Raven_Bot*>::const_iterator curBot = m_Bots.begin();
+	for (curBot; curBot != m_Bots.end(); ++curBot)
+	{
+		(*curBot)->SetInTeam(teamExist);
+		(*curBot)->Update();
+	}
 }
 
 //--------------------------- AddBolt -----------------------------------------
@@ -386,6 +411,7 @@ bool Raven_Game::LoadMap(const std::string& filename)
 
   //in with the new
   m_pGraveMarkers = new GraveMarkers(script->GetDouble("GraveLifetime"));
+  m_pTriggerTeamWeapon = new Trigger_TeamWeapon(script->GetDouble("GraveLifetime") + 10);
   m_pPathManager = new PathManager<Raven_PathPlanner>(script->GetInt("MaxSearchCyclesPerUpdateStep"));
   m_pMap = new Raven_Map();
 
@@ -396,7 +422,7 @@ bool Raven_Game::LoadMap(const std::string& filename)
   //load the new map data
   if (m_pMap->LoadMap(filename))
   { 
-    AddBots(script->GetInt("NumBots"));
+    AddBots(script->GetInt("NumBots"), false);		//2dn arg : no existent team
   
     return true;
   }
@@ -687,6 +713,11 @@ Raven_Game::GetPosOfClosestSwitch(Vector2D botPos, unsigned int doorID)const
 void Raven_Game::Render()
 {
   m_pGraveMarkers->Render();
+
+  if (m_pTriggerTeamWeapon != NULL) {
+	  m_pTriggerTeamWeapon->Render();
+  }
+ 
   
   //render the map
   m_pMap->Render();

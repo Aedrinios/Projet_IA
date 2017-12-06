@@ -165,7 +165,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
          case VK_UP:
 
-           g_pRaven->AddBots(1); break;
+           g_pRaven->AddBots(1, UserOptions->m_bAgentHasTeam); break;
 
          case VK_DOWN:
 
@@ -214,7 +214,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
       case IDM_GAME_ADDBOT:
 
-          g_pRaven->AddBots(1);
+          g_pRaven->AddBots(1, UserOptions->m_bAgentHasTeam);
           
           break;
 
@@ -229,8 +229,17 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
           g_pRaven->TogglePause();
 
           break;
+		
 
+	  case IDM_GAME_CREATE_TEAM:
 
+		  UserOptions->m_bAgentHasTeam = !UserOptions->m_bAgentHasTeam;
+
+		  CheckMenuItemAppropriately(hwnd, IDM_GAME_CREATE_TEAM, UserOptions->m_bAgentHasTeam);
+
+		  g_pRaven->CreateTeam(UserOptions->m_bAgentHasTeam);
+
+		  break;
 
       case IDM_NAVIGATION_SHOW_NAVGRAPH:
 

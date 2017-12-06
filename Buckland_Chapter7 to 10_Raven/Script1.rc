@@ -34,6 +34,7 @@ BEGIN
         MENUITEM "Add Bot [ csr up ]",          IDM_GAME_ADDBOT
         MENUITEM "Remove Bot [ csr down ]",     IDM_GAME_REMOVEBOT
         MENUITEM "Toggle Pause [ 'P' ]",        IDM_GAME_PAUSE
+		MENUITEM "Create Team",					IDM_GAME_CREATE_TEAM
     END
     POPUP "Navigation"
     BEGIN
